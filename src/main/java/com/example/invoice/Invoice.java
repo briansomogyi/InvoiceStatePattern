@@ -1,51 +1,53 @@
-
 package com.example.invoice;
 
 public class Invoice {
-
-    private Status status = Status.DRAFT;
+    private InvoiceState state;
     private double amount;
     private String description;
 
-    public String status() { return status.name(); }
+    public Invoice() {
+        this.state = new DraftState(); // Initial state
+    }
 
+    // Setters for data (used by States to update the context)
+    public void setState(InvoiceState state) {
+        this.state = state;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public String status() {
+        return state.getStatusName();
+    }
+
+    // --- Delegate methods ---
     public void edit(String desc, double amt) {
-        switch (status) {
-            case DRAFT, SUBMITTED, APPROVED -> {
-                this.description = desc;
-                this.amount = amt;
-                // If edited after SUBMITTED or APPROVED, return to DRAFT for re-approval
-                if (status != Status.DRAFT) status = Status.DRAFT;
-            }
-            default -> throw new IllegalStateException("edit not allowed in " + status);
-        }
+        state.edit(this, desc, amt);
     }
 
     public void submit() {
-        switch (status) {
-            case DRAFT -> status = Status.SUBMITTED;
-            default -> throw new IllegalStateException("submit not allowed in " + status);
-        }
+        state.submit(this);
     }
 
     public void approve() {
-        switch (status) {
-            case SUBMITTED -> status = Status.APPROVED;
-            default -> throw new IllegalStateException("approve not allowed in " + status);
-        }
+        state.approve(this);
     }
 
     public void reject(String reason) {
-        switch (status) {
-            case SUBMITTED -> status = Status.REJECTED;
-            default -> throw new IllegalStateException("reject not allowed in " + status);
-        }
+        state.reject(this, reason);
     }
 
     public void pay() {
-        switch (status) {
-            case APPROVED -> status = Status.PAID;
-            default -> throw new IllegalStateException("pay not allowed in " + status);
-        }
+        state.pay(this);
+    }
+
+    public void hold() {
+        state.hold(this);
     }
 }
