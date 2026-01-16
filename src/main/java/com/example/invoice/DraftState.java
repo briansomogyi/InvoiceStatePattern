@@ -1,6 +1,8 @@
 package com.example.invoice;
 
 public class DraftState implements InvoiceState {
+    // ... existing edit/submit code ...
+
     @Override
     public void edit(Invoice context, String desc, double amount) {
         // Edit is allowed in Draft, stays in Draft
@@ -13,24 +15,27 @@ public class DraftState implements InvoiceState {
         context.setState(new SubmittedState());
     }
 
+    // ... existing error throws for approve/reject/pay ...
     @Override
-    public void approve(Invoice context) {
-        throw new IllegalStateException("Cannot approve a Draft invoice. Submit it first.");
+    public void approve(Invoice c) {
+        throw new IllegalStateException("Submit first");
     }
 
     @Override
-    public void reject(Invoice context, String reason) {
-        throw new IllegalStateException("Cannot reject a Draft invoice.");
+    public void reject(Invoice c, String r) {
+        throw new IllegalStateException("Cannot reject Draft");
     }
 
     @Override
-    public void pay(Invoice context) {
-        throw new IllegalStateException("Cannot pay a Draft invoice.");
+    public void pay(Invoice c) {
+        throw new IllegalStateException("Cannot pay Draft");
     }
 
     @Override
     public void hold(Invoice context) {
-        throw new IllegalStateException("Cannot put a Draft invoice On Hold.");
+        // Diagram: Draft -> OnHold
+        // We pass 'this' so OnHoldState knows to come back to Draft if needed
+        context.setState(new OnHoldState(this));
     }
 
     @Override
